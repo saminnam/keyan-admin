@@ -167,7 +167,7 @@ const Testimonials = () => {
           <div className={`${!addTestimonials ? "mt-0" : "mt-16"}`}>
             <div className="overflow-x-auto">
               <table className="w-full table-auto border border-collapse text-center">
-                <thead className="bg-gray-800 text-white">
+                <thead className="bg-blue-500 text-white">
                   <tr>
                     <th className="border border-gray-300 p-2 text-xs font-medium uppercase tracking-wider">
                       Name
