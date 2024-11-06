@@ -167,7 +167,7 @@ const Portfolio = () => {
           <div className={`${!addPortfolios ? "mt-10" : "mt-16"}`}>
             <div className="overflow-x-auto">
               <table className="w-full table-auto border-collapse divide-gray-200 text-center">
-                <thead className="bg-gray-800 text-white">
+                <thead className="bg-blue-500 text-white">
                   <tr>
                     <th className="py-2 px-4 border text-xs font-medium uppercase tracking-wider">
                       Image
