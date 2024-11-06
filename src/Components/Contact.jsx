@@ -1,195 +1,120 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { AgGridReact } from "ag-grid-react";
 import ShortInfo from "./ShortInfo";
-import { RiCodeView } from "react-icons/ri";
-import { RiDeleteBinLine } from "react-icons/ri";
+import { RiCodeView, RiDeleteBinLine } from "react-icons/ri";
+import { apiRequest } from "./Api";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
 
-const Contact = ({ newList, setNewList, portfolioList, serviceList }) => {
-  // Sample data for messages (can be replaced with your actual data)
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      name: "John",
-      email: "john@example.com",
-      subject: "Hello",
-      message: "Hi there!",
-      read: false,
-    },
-    {
-      id: 2,
-      name: "Jane",
-      email: "jane@example.com",
-      subject: "Update",
-      message: "Need updates",
-      read: false,
-    },
-    {
-      id: 3,
-      name: "Bob",
-      email: "bob@example.com",
-      subject: "Meeting",
-      message: "Schedule meeting",
-      read: false,
-    },
-    {
-      id: 4,
-      name: "Alice",
-      email: "alice@example.com",
-      subject: "Info",
-      message: "Send info",
-      read: false,
-    },
-    {
-      id: 5,
-      name: "John",
-      email: "john@example.com",
-      subject: "Hello",
-      message: "Hi there!",
-      read: false,
-    },
-    {
-      id: 6,
-      name: "Jane",
-      email: "jane@example.com",
-      subject: "Update",
-      message: "Need updates",
-      read: false,
-    },
-    {
-      id: 7,
-      name: "Bob",
-      email: "bob@example.com",
-      subject: "Meeting",
-      message: "Schedule meeting",
-      read: false,
-    },
-    {
-      id: 8,
-      name: "Alice",
-      email: "alice@example.com",
-      subject: "Info",
-      message: "Send info",
-      read: false,
-    },
-  ]);
-
-  // State to store the selected message for viewing
+const Contact = () => {
+  const [contacts, setContacts] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
 
-  // Function to handle deleting all messages
-  const handleDeleteAll = () => {
-    setMessages([]); // Clear the messages state
-    setSelectedMessage(null); // Clear selected message
-  };
+  useEffect(() => {
+    fetchContacts();
+  }, []);
 
-  // Function to handle deleting a specific message
-  const handleDeleteMessage = (id) => {
-    setMessages(messages.filter((message) => message.id !== id));
-    if (selectedMessage && selectedMessage.id === id) {
-      setSelectedMessage(null); // Clear selected message if it's deleted
+  const fetchContacts = async () => {
+    try {
+      const data = await apiRequest("get", "contacts"); // Use the generic function
+      setContacts(data);
+    } catch (error) {
+      console.error("Error fetching contacts", error);
     }
   };
 
-  // Function to handle viewing a specific message and marking it as "Read"
-  const handleViewMessage = (message) => {
-    setMessages((prevMessages) =>
-      prevMessages.map((msg) =>
-        msg.id === message.id ? { ...msg, read: true } : msg
-      )
-    );
-    setSelectedMessage(message); // Set the selected message to display
+  const handleViewClick = async (contact) => {
+    try {
+      await apiRequest("put", `contacts/${contact._id}/read`); // Use the generic function
+      setContacts((prevContacts) =>
+        prevContacts.map((msg) =>
+          msg._id === contact._id ? { ...msg, status: "Read" } : msg
+        )
+      );
+      setSelectedMessage({ ...contact, status: "Read" });
+    } catch (error) {
+      console.error("Error marking contact as read", error);
+    }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await apiRequest("delete", `contacts/${id}`); // Use the generic function
+      fetchContacts();
+    } catch (error) {
+      console.error("Error deleting contact", error);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      await apiRequest("delete", "contacts"); // Use the generic function
+      setContacts([]);
+      setSelectedMessage(null);
+    } catch (error) {
+      console.error("Error deleting all contacts", error);
+    }
+  };
+
+  const columnDefs = [
+    { headerName: "Name", field: "name", sortable: true, filter: true },
+    { headerName: "Email", field: "email", sortable: true, filter: true },
+    { headerName: "Subject", field: "subject", sortable: true, filter: true },
+    { headerName: "Message", field: "message", sortable: true, filter: true },
+    { headerName: "Status", field: "status", sortable: true, filter: true },
+    {
+      headerName: "Actions",
+      field: "actions",
+      cellRenderer: (params) => (
+        <div className="flex space-x-2 mt-2">
+          <RiCodeView
+            className="text-xl cursor-pointer"
+            onClick={() => handleViewClick(params.data)}
+          />
+
+          <RiDeleteBinLine
+            className="text-xl cursor-pointer"
+            onClick={() => handleDelete(params.data._id)}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <>
-      <section className="mt-14">
-        <ShortInfo
-          newList={newList}
-          portfolioList={portfolioList}
-          serviceList={serviceList}
-        />
-        <div className="flex justify-between mx-10 mb-5 mt-20 items-center">
-          <h2 className="text-2xl font-bold md:text-5xl font-serif">Messages</h2>
+    <section className="mt-14">
+      <ShortInfo />
+      <div className="mx-10">
+        <div className="flex justify-between mb-5 mt-20 items-center">
+          <h2 className="text-2xl font-bold md:text-5xl font-serif">
+            Messages
+          </h2>
           <button
-            onClick={handleDeleteAll} // Call the function when button is clicked
-            className="bg-transparent font-semibold rounded-lg border hover:bg-blue-500 hover:text-white transition-transform duration-300 border-blue-500 text-blue-500 lg:px-8 py-3"
+            onClick={handleDeleteAll}
+            className="bg-transparent text-xs font-medium uppercase tracking-tight rounded-lg border hover:bg-blue-500 hover:text-white transition-transform duration-300 border-blue-500 text-blue-500 px-3 lg:px-8 py-3"
           >
             Delete All
           </button>
         </div>
-        <div className="overflow-x-auto mx-10">
-          <table className="w-full table-auto border-collapse border border-gray-300">
-            <thead className="bg-gray-800 text-white">
-              <tr>
-                <th className="py-2 px-4 border">No</th>
-                <th className="py-2 px-4 border">Name</th>
-                <th className="py-2 px-4 border">Email Id</th>
-                <th className="py-2 px-4 border">Subject</th>
-                <th className="py-2 px-4 border">Message</th>
-                <th className="py-2 px-4 border">Read</th>
-                <th className="py-2 px-4 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="text-center">
-              {messages.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="border px-4 py-2">
-                    No messages available
-                  </td>
-                </tr>
-              ) : (
-                messages.map((message, index) => (
-                  <tr key={message.id}>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {index + 1}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {message.name}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {message.email}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {message.subject}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {message.message}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {message.read ? "Read" : "Unread"}
-                    </td>
-                    <td className="border border-gray-300 px-4 flex py-2 space-x-2">
-                      <button
-                        onClick={() => handleViewMessage(message)} // Pass the message to the view handler
-                        className="bg-blue-500 text-white px-2 py-2 rounded-full"
-                      >
-                        <RiCodeView className="text-white text-xl" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteMessage(message.id)} // Delete individual message
-                        className="bg-red-500 text-white px-2 py-2 rounded-full"
-                      >
-                        <RiDeleteBinLine className="text-white text-xl" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+
+        <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
+          <AgGridReact
+            rowData={contacts}
+            columnDefs={columnDefs}
+            pagination={true}
+            paginationPageSize={10}
+            domLayout="autoHeight"
+          />
         </div>
 
-        {/* Display the selected message's details */}
         {selectedMessage && (
-          <div className="mx-10 mt-10 p-5 border border-gray-300 rounded-lg bg-gray-100 relative">
-            {/* Close button */}
+          <div className="p-5 border border-gray-300 rounded-lg bg-gray-100 relative">
             <button
-              onClick={() => setSelectedMessage(null)} // Close the message details
+              onClick={() => setSelectedMessage(null)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             >
-              &#x2715;{" "}
-              {/* Unicode for the "X" symbol, you can replace it with an icon */}
+              &#x2715;
             </button>
-
             <h3 className="text-3xl font-bold mb-4 font-serif">
               Message Details
             </h3>
@@ -206,13 +131,12 @@ const Contact = ({ newList, setNewList, portfolioList, serviceList }) => {
               <strong>Message:</strong> {selectedMessage.message}
             </p>
             <p>
-              <strong>Status:</strong>{" "}
-              {selectedMessage.read ? "Read" : "Unread"}
+              <strong>Status:</strong> {selectedMessage.status}
             </p>
           </div>
         )}
-      </section>
-    </>
+      </div>
+    </section>
   );
 };
 

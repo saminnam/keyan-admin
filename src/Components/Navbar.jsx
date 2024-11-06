@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/keyan-white.png";
 import { TbLogs } from "react-icons/tb";
@@ -20,16 +20,29 @@ const Navbar = ({ active, setActive }) => {
   const [isMobileView, setIsMobileView] = useState(false);
   const [profileImage, setProfileImage] = useState(profile);
 
+  // Load the profile image from localStorage on component mount
+  useEffect(() => {
+    const savedProfileImage = localStorage.getItem("profileImage");
+    if (savedProfileImage) {
+      setProfileImage(savedProfileImage);
+    }
+  }, []);
+
+  // Function to remove profile image
   function handleRemoveProfile() {
-    setProfileImage(profile); // Reset the profile
+    setProfileImage(profile); // Reset to default image
+    localStorage.removeItem("profileImage"); // Remove from localStorage
   }
 
+  // Function to handle profile image change
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfileImage(reader.result); // Set the profile image to the loaded file
+        const imageData = reader.result;
+        setProfileImage(imageData); // Set the profile image to the loaded file
+        localStorage.setItem("profileImage", imageData); // Save the image to localStorage
       };
       reader.readAsDataURL(file);
     }
@@ -37,7 +50,7 @@ const Navbar = ({ active, setActive }) => {
 
   const handleLinkClick = (link) => {
     setActive(link);
-    setIsMobileView(false); // Close mobile menu
+    setIsMobileView(false); // Close mobile menu when a link is clicked
   };
 
   return (
@@ -75,10 +88,18 @@ const Navbar = ({ active, setActive }) => {
         <ul className="mt-4 text-white">
           {[
             { name: "HOME", icon: <IoHomeOutline />, link: "Home" },
-            { name: "SERVICES", icon: <MdOutlineMiscellaneousServices />, link: "Services" },
+            {
+              name: "SERVICES",
+              icon: <MdOutlineMiscellaneousServices />,
+              link: "Services",
+            },
             { name: "BLOGS", icon: <LiaBlogSolid />, link: "Blogs" },
             { name: "PORTFOLIOS", icon: <FaRegFileCode />, link: "Portfolios" },
-            { name: "TESTIMONIALS", icon: <PiListStarDuotone />, link: "Testimonials" },
+            {
+              name: "TESTIMONIALS",
+              icon: <PiListStarDuotone />,
+              link: "Testimonials",
+            },
             { name: "TEAM", icon: <RiTeamLine />, link: "Team" },
             { name: "CONTACT", icon: <IoIosContact />, link: "Contact" },
           ].map((item) => (
@@ -106,9 +127,7 @@ const Navbar = ({ active, setActive }) => {
       {/* Mobile menu button */}
       <button
         className="absolute right-4 top-4 lg:hidden"
-        onClick={() => {
-          setIsMobileView(!isMobileView);
-        }}
+        onClick={() => setIsMobileView(!isMobileView)}
         aria-label="Toggle mobile menu"
       >
         {isMobileView ? (
@@ -150,18 +169,23 @@ const Navbar = ({ active, setActive }) => {
         <ul className="text-center">
           {[
             { name: "HOME", icon: <IoHomeOutline />, link: "Home" },
-            { name: "SERVICES", icon: <MdOutlineMiscellaneousServices />, link: "Services" },
+            {
+              name: "SERVICES",
+              icon: <MdOutlineMiscellaneousServices />,
+              link: "Services",
+            },
             { name: "BLOGS", icon: <LiaBlogSolid />, link: "Blogs" },
             { name: "PORTFOLIOS", icon: <FaRegFileCode />, link: "Portfolios" },
-            { name: "TESTIMONIALS", icon: <PiListStarDuotone />, link: "Testimonials" },
+            {
+              name: "TESTIMONIALS",
+              icon: <PiListStarDuotone />,
+              link: "Testimonials",
+            },
             { name: "TEAM", icon: <RiTeamLine />, link: "Team" },
             { name: "CONTACT", icon: <IoIosContact />, link: "Contact" },
           ].map((item) => (
             <li key={item.name} className="py-3 group">
-              <Link
-                to="/"
-                onClick={() => handleLinkClick(item.link)}
-              >
+              <Link to="/" onClick={() => handleLinkClick(item.link)}>
                 <div className="flex justify-between">
                   <div className="flex items-center gap-2">
                     <div>{item.icon}</div>
@@ -176,18 +200,10 @@ const Navbar = ({ active, setActive }) => {
           ))}
         </ul>
         <div className="text-[#2986FE] flex mx-auto gap-2 mt-14 p-2 justify-center bg-white rounded-lg">
-          <CgLogOut className="text-2xl mt-1" />
+          <CgLogOut className="text-2xl mt-1 transition-transform duration-200 transform group-hover:-translate-x-2" />
           <button className="text-lg font-semibold">LOGOUT</button>
         </div>
       </aside>
-
-      {/* Background overlay when menu is open */}
-      {isMobileView && (
-        <div
-          className="fixed inset-0 bg-black opacity-50 z-10"
-          onClick={() => setIsMobileView(false)} // Close menu when overlay is clicked
-        />
-      )}
     </nav>
   );
 };

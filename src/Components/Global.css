@@ -1,0 +1,12 @@
+.ag-header-cell-label {
+    font-size: 0.75rem; /* Equivalent to text-xs */
+    font-weight: 500; /* Equivalent to font-medium */
+    text-transform: uppercase; /* Equivalent to uppercase */
+    letter-spacing: 0.05em;
+    color: #fff;
+  }
+  
+  .ag-theme-alpine .ag-header {
+    background-color: #2986FE; /* Change to your desired color */
+  }
+  
